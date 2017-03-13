@@ -1,0 +1,64 @@
+* Overview
+	cpplib brings standard programming language features—such as conditionals and
+	loops—to the C preprocessor. It also includes macros to simulate function
+	overloading and variadic templates.
+
+	cpplib is a single header file written in pure CPP with no C code to bloat
+	executable size.
+
+* Why
+	C preprocessor is much nicer than C itself. It is a purely functional language based on pattern matching—this means CPP code is easier to reason about and can be automatically parallelized. CPP is also very efficient, compiling to C with no dependencies.
+
+	Unfortunately, while CPP is rivaled only by Haskell in clarity and purity, it
+	is missing some convenient features by default, such as the “if” expression
+	and recursion. cpplib fills in the gaps, so you can write more code in functional CPP instead of imperative C. Take advantage of pattern matching and functional programming with CPP!
+
+* Documentation
+	Documentation only distracts you from code and risks becoming outdated. Thanks to common functional programming techniques including higher-order macros, cpplib is very easy to understand. Consult cpplib.h in place of documentation.
+
+* Examples
+	** Syntactic sugar for repeated case statements
+		#+BEGIN_SRC c
+		#define CASE(x) case x:
+		#define ANY(...) CPP_FOREACH(CASE,__VA_ARGS__)
+		typedef enum { Cn, Lu, Ll, Lt, Lm, Lo, Zs, Zl, Zp } unicode_category;
+		switch (get_category(codepoint))
+		{
+			ANY(Zs, Zl, Zp) process_whitespace(codepoint);
+			default: process_other(codepoint);
+		}
+		#+END_SRC
+
+	** Function overloading
+		#+BEGIN_SRC c
+		#define range(...) CPP_OVERLOAD(range,__VA_ARGS__)
+		#define range2(f,n) range3(f,0,n)
+		void range3(void (*yield)(int), int from, int to)
+		{
+			for (int i = from; i < to; ++i) yield(i);
+		}
+		#+END_SRC
+
+	** Enum values to column names
+		#+BEGIN_SRC c
+		#define LIST_COLUMNS_(X,X_) X(FieldID) X(State) X(Name) X_(Code)
+		#define LIST_COLUMNS(X) LIST_COLUMNS_(X,X)
+		typedef enum { LIST_COLUMNS_(CPP_ENUMERATE, CPP_ID) } column_t;
+		const char *column_name_of_enum(column_t c)
+		{
+		#define COMPARE_FieldID(x) x
+		#define TOSTR(name) CPP_IF(CPP_EQUAL(name,FieldID)) \
+			( \
+				if(c==FieldID){return "field_id";}, \
+				if(c==name){return #name;} \
+			)
+		LIST_COLUMNS(TOSTR)
+		#undef TOSTR
+		#undef COMPARE_FieldID
+		}
+		#+END_SRC
+
+* License
+	cpplib is licensed under the Creative Commons CC0 license. Where possible I renounce copyright to cpplib. See LICENSE for details.
+
+	cpplib.h includes a quote from Dante Alighieri's epic poem ‘Inferno’. Check that your country allows you to freely distribute 700 year old texts. Otherwise, you're stealing from Mr. Alighieri.

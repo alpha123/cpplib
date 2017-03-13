@@ -45,12 +45,18 @@ typedef enum { LIST_COLUMNS_(CPP_ENUMERATE, CPP_ID) } column_t;
 const char *column_name_of_enum(column_t c)
 {
 #define COMPARE_FieldID(x) x
-#define TOSTR(name) CPP_IF(CPP_EQUAL(name,FieldID)) \
+#define TOSTR(name) \
+	CPP_IF(CPP_EQUAL(name,FieldID)) \
 	( \
-		if(c==FieldID){return "field_id";}, \
-		if(c==name){return #name;} \
+		case FieldID: return "field_id";, \
+		case name: return #name; \
 	)
-LIST_COLUMNS(TOSTR)
+
+	switch (c)
+	{
+	LIST_COLUMNS(TOSTR)
+	}
+	
 #undef TOSTR
 #undef COMPARE_FieldID
 }
